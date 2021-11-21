@@ -17,7 +17,6 @@ export default function (Vue, options, { appOptions, router, head }) {
     function setLocale(lang) {
         locale = lang // update variable for plugin
         Vue.prototype.$locale = locale // update helper
-        localStorage.setItem('locale', locale) // update browser preference
     }
     // helper
     Vue.prototype.$setLocale = setLocale
@@ -38,27 +37,22 @@ export default function (Vue, options, { appOptions, router, head }) {
     }
 
 
-    // Initialize locale different from default, if applyable
+    // Initialize locale different from url, if applyable
     function initLocale() {
        
         if(process.isClient) {
 
-            // Check if we have saved preferences of user
-            if( localStorage.locale && localStorage.locale !== 'undefined') {
-                setLocale(localStorage.locale)
+            // Try get locales from url
+            const browserUrl = splitPath(window.location.href)
+            const localeFromBrowser = browserUrl.filter(el => options.locales.includes(el))[0] // in case there are several locales in url, we get first
+            if(localeFromBrowser) {
+                setLocale(localeFromBrowser)
             }
-            else {
-                // If no preferences, try get locales from url
-                const browserUrl = splitPath(window.location.href)
-                const localeFromBrowser = browserUrl.filter(el => options.locales.includes(el))[0] // in case there are several locales in url, we get first
-                if(localeFromBrowser) {
-                    setLocale(localeFromBrowser)
-                }
-                else{
-                    // if non of these conditions are worked, locale will remain default
-                    setLocale(options.defaultLocale)
-                }
+            else{
+                // if non of these conditions are worked, locale will remain default
+                setLocale(options.defaultLocale)
             }
+
         }
 
         Vue.prototype.$locale = locale
